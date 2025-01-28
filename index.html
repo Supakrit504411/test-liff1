@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search PEA Data</title>
+    <style>
+        /* Flexbox Carousel Styling */
+        .carousel {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+        }
+
+        .carousel .card {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 300px;
+            max-width: 350px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .carousel .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .carousel .card p {
+            font-size: 1rem;
+            margin: 5px 0;
+        }
+
+        /* Simple search box */
+        .search-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .search-container input {
+            padding: 10px;
+            font-size: 1rem;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .search-container button {
+            padding: 10px 15px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Search PEA Data</h1>
+    
+    <div class="search-container">
+        <input type="text" id="peaSearch" placeholder="Enter PEA name to search...">
+        <button onclick="searchPEA()">Search</button>
+    </div>
+    
+    <div id="carouselContainer" class="carousel"></div>
+
+    <script>
+        // Replace with your Google Sheets API URL (published data or linked API)
+        const SHEET_API_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1WexR-gYmB47Nmy34CmyKwneNNFXnoyTis3WDOwo9gmw/values/งานกำไร-ขาดทุน?key=YOUR_API_KEY';
+
+        function searchPEA() {
+            const peaSearch = document.getElementById('peaSearch').value.trim();
+
+            if (!peaSearch) {
+                alert('Please enter a PEA name to search.');
+                return;
+            }
+
+            // Fetch data from Google Sheets
+            fetch(SHEET_API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const rows = data.values;
+                    const filteredData = rows.filter(row => row[0].toLowerCase().includes(peaSearch.toLowerCase()));
+
+                    displayCarousel(filteredData);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert('Failed to fetch data from Google Sheets.');
+                });
+        }
+
+        function displayCarousel(data) {
+            const carouselContainer = document.getElementById('carouselContainer');
+            carouselContainer.innerHTML = ''; // Clear previous results
+
+            if (data.length === 0) {
+                carouselContainer.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+
+            data.forEach(row => {
+                const [pea, income, cost, profitLoss, ratio] = row;
+
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.innerHTML = `
+                    <h3>PEA: ${pea}</h3>
+                    <p><strong>รายได้:</strong> ${income}</p>
+                    <p><strong>ต้นทุนงาน:</strong> ${cost}</p>
+                    <p><strong>กำไร/ขาดทุน:</strong> ${profitLoss}</p>
+                    <p><strong>อัตราส่วน:</strong> ${ratio}</p>
+                `;
+                carouselContainer.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
